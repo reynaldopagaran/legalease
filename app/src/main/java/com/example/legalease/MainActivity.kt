@@ -13,12 +13,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.legalease.ui.components.screens.intro.IntroScreen
-import com.example.legalease.ui.components.screens.intro.IntroViewModel
+import androidx.navigation.compose.rememberNavController
+import com.example.legalease.ui.screens.intro.IntroScreen
+import com.example.legalease.ui.screens.intro.IntroViewModel
 import com.legalease.ui.theme.LegalEaseTheme
-import com.legalease.viewmodel.BottomSheetViewModel
+import com.example.legalease.ui.components.bottomSheet.MainBottomSheets.BottomSheetViewModel
+import com.example.legalease.ui.navigation.AppNavHost
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("ViewModelConstructorInComposable")
@@ -27,20 +28,15 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LegalEaseTheme {
-                val introViewModel: IntroViewModel = viewModel()
-                val sheetViewModel: BottomSheetViewModel = viewModel()
                 Scaffold { innerPadding ->
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding)
-                            .padding(WindowInsets.systemBars.asPaddingValues())
-                    ) {
 
-                        IntroScreen(
-                            viewModel = introViewModel,
-                            sheetViewModel = sheetViewModel
-                        )
+                    ) {
+                        val navController = rememberNavController()
+                        AppNavHost(navController = navController)
                     }
                 }
 

@@ -1,11 +1,11 @@
-package com.example.legalease.ui.components.bottomSheet
+package com.example.legalease.ui.screens.intro
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class LoginSheetViewModel : ViewModel() {
+class IntroViewModel : ViewModel() {
 
     private val _email = MutableStateFlow("")
     val email: StateFlow<String> = _email.asStateFlow()

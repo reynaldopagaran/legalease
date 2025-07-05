@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.legalease"
-        minSdk = 24
+        minSdk = 31
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -65,6 +65,8 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material3:material3:1.3.2")
     implementation ("androidx.compose.material:material-icons-extended")
-
+    implementation("androidx.navigation:navigation-compose:2.9.1")
+    implementation("io.github.afreakyelf:Pdf-Viewer:2.3.7")
+    implementation("io.coil-kt:coil-compose:2.5.0")
 
 }

@@ -23,7 +23,7 @@ fun SecondaryButton(
             .fillMaxWidth()
             .height(52.dp),
         shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline), // clean border
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline), // clean border
         colors = ButtonDefaults.outlinedButtonColors(
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onBackground, // stronger text

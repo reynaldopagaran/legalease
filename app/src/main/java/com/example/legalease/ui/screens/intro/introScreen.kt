@@ -1,52 +1,58 @@
-package com.example.legalease.ui.components.screens.intro
+package com.example.legalease.ui.screens.intro
 
-import BottomSheet
-import PrimaryTextField
+import com.example.legalease.ui.components.bottomSheet.MainBottomSheets.BottomSheet
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.legalease.R
-import com.example.legalease.ui.components.bottomSheet.BottomSheetContent
-import com.example.legalease.ui.components.bottomSheet.LoginSheetContent
+import com.example.legalease.ui.components.bottomSheet.MainBottomSheets.BottomSheetContent
+import com.example.legalease.ui.components.bottomSheet.ForgotPasswordSheet.ForgotPasswordSheetContent
+import com.example.legalease.ui.components.bottomSheet.LoginSheet.LoginSheetContent
+import com.example.legalease.ui.components.bottomSheet.RegisterSheet.RegisterSheetContent
 import com.example.legalease.ui.components.buttons.PrimaryButton
 import com.example.legalease.ui.components.spacers.VerticalSpacer
-import com.legalease.viewmodel.BottomSheetViewModel
+import com.example.legalease.ui.components.bottomSheet.MainBottomSheets.BottomSheetViewModel
 
 @Composable
 fun IntroScreen(
-    viewModel: IntroViewModel,
-    sheetViewModel: BottomSheetViewModel
+    navController: NavController
 ) {
-
-    val email by viewModel.email.collectAsState()
-    val password by viewModel.password.collectAsState()
+    val sheetViewModel: BottomSheetViewModel = viewModel()
 
     BottomSheet(
         viewModel = sheetViewModel,
-        loginContent = { LoginSheetContent { sheetViewModel.hide() } },
-        registerContent = { Text("Register Form") },
-        forgotPasswordContent = { Text("Forgot Password Form") }
+        loginContent = {
+            LoginSheetContent(
+                navController = navController,
+                onLoginSuccess = { sheetViewModel.hide() }
+            )
+        },
+        registerContent = { RegisterSheetContent { sheetViewModel.hide() } },
+        forgotPasswordContent = { ForgotPasswordSheetContent { sheetViewModel.hide() } }
     )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 20.dp, vertical = 0.dp),
+            .padding(horizontal = 20.dp, vertical = 20.dp),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

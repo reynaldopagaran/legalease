@@ -2,6 +2,12 @@ package com.legalease.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+//Risk Colors
+val RiskColorLow = Color(0xFF2E7D32) // Green 800
+val RiskColorMedium = Color(0xFFF9A825) // Yellow 800
+val RiskColorHigh = Color(0xFFC62828) // Red 800
+
+
 // Light Theme Colors
 val md_theme_light_primary = Color(0xFF6495ED) // Prussian Blue
 val md_theme_light_onPrimary = Color(0xFFFFFFFF)

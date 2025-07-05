@@ -1,7 +1,6 @@
-package com.legalease.viewmodel
+package com.example.legalease.ui.components.bottomSheet.MainBottomSheets
 
 import androidx.lifecycle.ViewModel
-import com.example.legalease.ui.components.bottomSheet.BottomSheetContent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

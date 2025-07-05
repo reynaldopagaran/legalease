@@ -1,14 +1,10 @@
-package com.example.legalease.ui.components.bottomSheet
+package com.example.legalease.ui.components.bottomSheet.ForgotPasswordSheet
 
 import PrimaryTextField
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -18,21 +14,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.legalease.ui.components.bottomSheet.MainBottomSheets.BottomSheetContent
 import com.example.legalease.ui.components.buttons.PrimaryButton
-import com.example.legalease.ui.components.screens.intro.IntroViewModel
 import com.example.legalease.ui.components.spacers.VerticalSpacer
+import com.example.legalease.ui.components.bottomSheet.MainBottomSheets.BottomSheetViewModel
 
 @Composable
-fun LoginSheetContent(onSubmit: () -> Unit) {
+fun ForgotPasswordSheetContent(onSubmit: () -> Unit) {
 
+    val bottomSheetViewModel: BottomSheetViewModel = viewModel()
 
+    val forgotPasswordViewModel: ForgotPasswordViewModel = viewModel()
 
-    val loginSheetViewModel: LoginSheetViewModel = viewModel()
+    val email by forgotPasswordViewModel.email.collectAsState()
 
-    val email by loginSheetViewModel.email.collectAsState()
-    val password by loginSheetViewModel.password.collectAsState()
 
     Column(
         modifier = Modifier
@@ -42,7 +38,7 @@ fun LoginSheetContent(onSubmit: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = "Login",
+            text = "Forgot Password",
             style = MaterialTheme.typography.displayLarge.copy(
                 color = MaterialTheme.colorScheme.primary
             )
@@ -50,38 +46,14 @@ fun LoginSheetContent(onSubmit: () -> Unit) {
         VerticalSpacer(height = 10.dp)
         PrimaryTextField(
             value = email,
-            onValueChange = {loginSheetViewModel.onEmailChanged(it)},
+            onValueChange = {forgotPasswordViewModel.onEmailChanged(it)},
             label = "Email",
             validator = { android.util.Patterns.EMAIL_ADDRESS.matcher(it).matches() },
             errorMessage = "Invalid email format"
         )
-        VerticalSpacer(height = 5.dp)
-        PrimaryTextField(
-            value = password,
-            onValueChange = {loginSheetViewModel.onPasswordChanged(it)},
-            label = "Password",
-            isPassword = true,
-            validator = { it.length >= 8 },
-            errorMessage = "Password must be at least 8 characters"
-        )
-        VerticalSpacer(height = 10.dp)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            Text(
-                text = "Forgot password?",
-                modifier = Modifier.clickable {
-                    // Handle click here
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-
-        }
         VerticalSpacer(height = 30.dp)
         PrimaryButton(
-            text = "Login",
+            text = "Submit",
             onClick = onSubmit
         )
         VerticalSpacer(height = 30.dp)
@@ -89,21 +61,15 @@ fun LoginSheetContent(onSubmit: () -> Unit) {
             text = "────── or ──────",
             style = MaterialTheme.typography.bodySmall
         )
-        VerticalSpacer(height = 30.dp)
+        VerticalSpacer(height = 25.dp)
         Text(
-            text = "GOOGLE HERE",
-            style = MaterialTheme.typography.bodySmall
-        )
-        VerticalSpacer(height = 30.dp)
-        Text(
-            text = "Create an Account",
+            text = "Login Instead",
             modifier = Modifier.clickable {
-                // Handle click here
+                bottomSheetViewModel.show(BottomSheetContent.Login)
             },
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.primary
         )
-
     }
 }
 

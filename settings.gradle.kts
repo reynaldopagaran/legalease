@@ -9,6 +9,10 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        maven {
+            url = uri("https://repo.itextsupport.com/android")
+        }
+
     }
 }
 dependencyResolutionManagement {

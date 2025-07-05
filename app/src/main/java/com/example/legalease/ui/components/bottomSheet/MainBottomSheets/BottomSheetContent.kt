@@ -1,4 +1,4 @@
-package com.example.legalease.ui.components.bottomSheet
+package com.example.legalease.ui.components.bottomSheet.MainBottomSheets
 
 sealed class BottomSheetContent {
     object Login : BottomSheetContent()
