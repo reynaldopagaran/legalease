@@ -2,14 +2,16 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.gms.google-services")
+    kotlin("plugin.serialization") version "1.9.23"
 }
 
 android {
-    namespace = "com.example.legalease"
+    namespace = "com.hcdc.legalease"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.legalease"
+        applicationId = "com.hcdc.legalease"
         minSdk = 31
         targetSdk = 34
         versionCode = 1
@@ -39,8 +41,10 @@ android {
     }
 }
 
+
 dependencies {
 
+    implementation(libs.firebase.ai)
     val composeBom = platform("androidx.compose:compose-bom:2025.05.00")
     implementation(composeBom)
     androidTestImplementation(composeBom)
@@ -68,5 +72,24 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.9.1")
     implementation("io.github.afreakyelf:Pdf-Viewer:2.3.7")
     implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("com.google.mlkit:text-recognition:16.0.1")
+    implementation("com.google.firebase:firebase-analytics")
+    implementation(platform("com.google.firebase:firebase-bom:33.16.0"))
+    implementation("com.google.firebase:firebase-ai")
+
+    // Network
+    implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.12")
+    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.12")
+
+    // JSON
+    implementation("com.google.code.gson:gson:2.10.1")
+
+
+    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+    implementation("io.coil-kt.coil3:coil-compose:3.2.0")
+
+    implementation("io.coil-kt:coil-gif:2.5.0")
 
 }
