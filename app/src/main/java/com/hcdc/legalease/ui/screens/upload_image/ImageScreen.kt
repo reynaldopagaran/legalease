@@ -68,11 +68,15 @@ fun ImageScreen(
     LaunchedEffect(scanCompleted) {
         if (scanCompleted && !hasNavigated) {
             hasNavigated = true
-            val scannedText = texts.value.firstOrNull() ?: ""
+            val scannedText = texts.value.joinToString(" ").replace("\\s+".toRegex(), " ").trim()
             val encodedText = Uri.encode(scannedText)
-            navController.navigate("result/$encodedText")
+            navController.navigate("result/$encodedText") {
+                popUpTo("dashboard") { inclusive = false }
+                launchSingleTop = true
+            }
         }
     }
+
 
     if (isLoading.value) {
         CustomLoading()

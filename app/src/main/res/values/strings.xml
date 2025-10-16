@@ -1,3 +1,69 @@
 <resources>
     <string name="app_name">LegalEase</string>
+    <string name="webz_client_id">901383878380-187r9t7uem1ln5q3tm9pof96c9bom20v.apps.googleusercontent.com</string>
+
+    <string name="terms">
+        \nLast Updated: October 16, 2025\n\n
+
+        This document outlines the relationship between you and your use of the LegalEase mobile application.\n\n
+
+        1. Acceptance and Agreement\n
+        By accessing or using the Service, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service. If you do not agree to these Terms, you must cease all use of the Service immediately.\n\n
+
+        2. Service Scope\n
+        The LegalEase Service is exclusively a digital contract analysis and summarization tool. Its primary functions include:\n
+        - File scanning and upload.\n
+        - Automated text summarization.\n
+        - Algorithmic identification and labeling of clauses (e.g., "high risk," "acceptable").\n
+        - User authentication (via email/password or Google) and persistent storage of analyzed documents.\n\n
+
+        3. Account and Access\n
+        A. Eligibility and Registration\n
+        You must be 18 years of age or older to use the Service. Registration via email or Google is required to access document saving features. You are responsible for maintaining the confidentiality of your account credentials.\n\n
+
+        B. Data Ownership and License\n
+        You retain full ownership of the original contract files you upload. You grant LegalEase a non-exclusive, worldwide, royalty-free license to use, reproduce, and process the uploaded data solely to perform the analytical services and to train and improve the underlying algorithms of the Service.\n\n
+
+        C. Data Retention and Deletion\n
+        We reserve the right to establish limits on data storage. We may delete your saved contract analysis results and files if your account is terminated, or if your usage exceeds reasonable limits, with or without notice.\n\n
+
+        4. Prohibited Uses\n
+        You are strictly prohibited from using the Service:\n
+        - To upload or analyze any content that is illegal, infringes on third-party intellectual property, or violates public order.\n
+        - To upload or analyze documents for which you lack the necessary legal rights or authorization.\n
+        - For any competitive analysis, reverse engineering, or attempts to replicate the Service’s core functionality.\n\n
+
+        5. Termination\n
+        We may suspend or terminate your access to the Service immediately, without prior notice or liability, for any breach of these Terms. Upon termination, all provisions of these Terms which by their nature should survive (including disclaimers and limitations of liability) shall remain in effect.
+    </string>
+
+    <string name="conditions">
+        Last Updated: October 16, 2025\n\n
+        This document details the essential conditions and limitations governing the manner in which you use the LegalEase service and the expectations regarding its output.\n\n
+        1. Disclaimer of Professional Advice\n
+        THE SERVICE DOES NOT PROVIDE LEGAL ADVICE.\n\n
+
+        The analysis (summaries, risk labeling) is algorithmic and does not constitute a legal opinion, legal counsel, or recommendation from a qualified attorney.\n
+        Your use of the Service does not create an attorney-client relationship between you and LegalEase.\n
+        You must seek independent legal advice from a licensed professional regarding the accuracy, enforceability, or risk associated with any document analyzed by the Service.\n\n
+
+        2. Accuracy and Reliability\n\n
+        A. Warranties Disclaimed\n
+        The Service is provided on an "AS IS" and "AS AVAILABLE" basis. We expressly disclaim all warranties, whether express or implied, including, but not limited to, implied warranties of merchantability, fitness for a particular purpose, or non-infringement. We do not warrant that the Service will be error-free or uninterrupted.\n\n
+        B. Risk Assessment\n
+        The categorization of clauses as "acceptable" or "high risk" is subjective and contextual. The Service’s assessment is not definitive and should not be relied upon to make legally binding decisions. You bear the sole responsibility for validating any risk assessment provided.\n\n
+
+        3. Limitation of Liability\n
+        To the maximum extent permitted by applicable law, in no event shall LegalEase be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, use, goodwill, or other intangible losses, resulting from:\n
+        \nYour access to or use of, or inability to access or use, the Service.\n
+        Any conduct or content of any third party on the Service.\n
+        Any reliance you place on the analytical results of the Service.\n\n
+
+        4. Indemnification\n
+        You agree to defend, indemnify, and hold harmless LegalEase from and against any and all claims, damages, obligations, losses, liabilities, costs or debt, and expenses (including but not limited to attorney\'s fees) arising from your misuse of the Service, particularly any claim arising from your reliance on the analytical output of the Service without seeking professional legal verification.\n\n
+
+        5. Contact Information\n
+        For any questions regarding these Conditions of Use, please contact:\n
+        legalease.support@gmail.com
+    </string>
 </resources>

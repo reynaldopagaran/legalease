@@ -19,19 +19,15 @@ fun PrimaryTextField(
     onValueChange: (String) -> Unit,
     label: String,
     isPassword: Boolean = false,
-    validator: ((String) -> Boolean)? = null,
-    errorMessage: String = ""
+    errorMessage: String? = null
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
-    var isError by remember { mutableStateOf(false) }
+    val isError = !errorMessage.isNullOrEmpty() // react to ViewModel
 
     Column {
         OutlinedTextField(
             value = value,
-            onValueChange = {
-                onValueChange(it)
-                isError = validator?.invoke(it)?.not() ?: false
-            },
+            onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
             label = { Text(label) },
             shape = RoundedCornerShape(12.dp),
@@ -63,7 +59,7 @@ fun PrimaryTextField(
             )
         )
 
-        if (isError && errorMessage.isNotBlank()) {
+        if (isError && !errorMessage.isNullOrBlank()) {
             Text(
                 text = errorMessage,
                 color = MaterialTheme.colorScheme.error,
