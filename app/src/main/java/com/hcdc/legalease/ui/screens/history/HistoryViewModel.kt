@@ -43,7 +43,36 @@ class HistoryViewModel : ViewModel() {
             }
     }
 
-    // ✅ New function to delete a contract by ID
+    // Updated function to rename a contract with a completion callback
+    fun renameContract(contractId: String, newName: String, onComplete: (Boolean) -> Unit) {
+        if (uid.isEmpty() || newName.isBlank()) {
+            onComplete(false)
+            return
+        }
+
+        val data = hashMapOf(
+            "contractName" to newName
+        )
+
+        db.collection(uid)
+            .document(contractId)
+            .update(data as Map<String, Any>)
+            .addOnSuccessListener {
+                // Update local state to refresh UI immediately
+                val index = _ids.value.indexOf(contractId)
+                if (index >= 0) {
+                    val currentNames = _contractNames.value.toMutableList()
+                    currentNames[index] = newName
+                    _contractNames.value = currentNames
+                }
+                onComplete(true)
+            }
+            .addOnFailureListener {
+                onComplete(false)
+            }
+    }
+
+    // Function to delete a contract by ID
     fun deleteContract(contractId: String) {
         if (uid.isEmpty()) return
         db.collection(uid)
@@ -59,7 +88,7 @@ class HistoryViewModel : ViewModel() {
                 }
             }
             .addOnFailureListener {
-                // optional: handle failure, maybe show a toast
+                // optional: handle failure
             }
     }
 }

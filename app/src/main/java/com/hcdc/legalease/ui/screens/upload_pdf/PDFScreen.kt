@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -30,6 +29,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.hcdc.legalease.ui.components.CustomLoading
 import com.hcdc.legalease.ui.components.buttons.PrimaryButton
 import com.hcdc.legalease.ui.components.buttons.SecondaryButton
 import com.hcdc.legalease.ui.components.spacers.VerticalSpacer
@@ -46,6 +45,8 @@ import com.rajat.pdfviewer.PdfRendererView
 import com.rajat.pdfviewer.compose.PdfRendererViewCompose
 import com.rajat.pdfviewer.util.PdfSource
 import kotlinx.coroutines.launch
+// Assuming LoadingDialog is in this package structure
+import com.hcdc.legalease.ui.screens.dashboard.LoadingDialog
 
 
 @SuppressLint("NewApi")
@@ -58,17 +59,21 @@ fun PDFScreen(
     val context = LocalContext.current
     val pdfUri by viewModel.pdfUri.collectAsState()
     val fileName by viewModel.fileName.collectAsState()
-    val texts = viewModel.ocrResults.collectAsState()
+    val texts by viewModel.ocrResults.collectAsState() // Use 'by' for direct access
     val scanCompleted by viewModel.scanCompleted.collectAsState()
     var hasNavigated = remember { false }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val isLoading = remember { mutableStateOf(false) }
+    // New state variable for the dialog
+    var showLoadingDialog by remember { mutableStateOf(false) }
 
+    // Use LaunchedEffect to observe scanCompleted and dismiss the dialog before navigation
     LaunchedEffect(scanCompleted) {
         if (scanCompleted && !hasNavigated) {
+            // Dismiss the dialog immediately upon completion
+            showLoadingDialog = false
             hasNavigated = true
-            val scannedText = texts.value.firstOrNull() ?: ""
+            val scannedText = texts.firstOrNull() ?: ""
             val encodedText = Uri.encode(scannedText)
             navController.navigate("result/$encodedText") {
                 popUpTo("dashboard") { inclusive = false }
@@ -101,84 +106,89 @@ fun PDFScreen(
         }
     }
 
-    if (isLoading.value) {
-        CustomLoading()
-    } else{
-        Scaffold(
-            snackbarHost = { SnackbarHost(snackbarHostState) }
-        ) { paddingValues ->
-            Column(
+    // Call the LoadingDialog here, controlled by the new state
+    LoadingDialog(
+        show = showLoadingDialog,
+        message = "Please wait..."
+    )
+
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(MaterialTheme.colorScheme.background)
+                .padding(horizontal = 20.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Text(
+                text = fileName ?: "-",
+                style = MaterialTheme.typography.bodyLarge
+            )
+
+            VerticalSpacer(20.dp)
+            // PDF Viewer Placeholder
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(horizontal = 20.dp, vertical = 20.dp),
-                verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
             ) {
 
-                Text(
-                    text = fileName ?: "-",
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                    )
-                )
-
-                VerticalSpacer(20.dp)
-                // PDF Viewer Placeholder
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outline,
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-
-                    pdfUri?.let { uri ->
-                        val source = PdfSource.LocalUri(uri)
-                        key(uri) {
-                            PdfRendererViewCompose(
-                                source = source,
-                                lifecycleOwner = LocalLifecycleOwner.current,
-                                modifier = Modifier.fillMaxSize(),
-                                zoomListener = object : PdfRendererView.ZoomListener {
-                                    override fun onZoomChanged(isZoomedIn: Boolean, scale: Float) {
-
-                                    }
+                pdfUri?.let { uri ->
+                    val source = PdfSource.LocalUri(uri)
+                    key(uri) {
+                        PdfRendererViewCompose(
+                            source = source,
+                            lifecycleOwner = LocalLifecycleOwner.current,
+                            modifier = Modifier.fillMaxSize(),
+                            zoomListener = object : PdfRendererView.ZoomListener {
+                                override fun onZoomChanged(isZoomedIn: Boolean, scale: Float) {
+                                    // Implementation for zoom change
                                 }
+                            }
+                        )
+                    }
+                } ?: Text("No PDF selected")
+
+            }
+            VerticalSpacer(20.dp)
+            SecondaryButton(
+                text = "Choose PDF",
+                onClick = {
+                    pdfPickerLauncher.launch(arrayOf("application/pdf"))
+                }
+            )
+            VerticalSpacer(10.dp)
+            PrimaryButton(
+                text = "Proceed to Scan",
+                onClick = {
+                    if (fileName?.endsWith(".pdf") == true && pdfUri != null){
+                        // Replaced isLoading.value = true with the new state variable
+                        showLoadingDialog = true
+                        viewModel.clearOcrResults()
+                        viewModel.processPdfAndRunOcr(context)
+                    }else{
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = "Please select a valid PDF file",
+                                actionLabel = "OK"
                             )
                         }
-                    } ?: Text("No PDF selected")
-
+                    }
                 }
-                VerticalSpacer(20.dp)
-                SecondaryButton(
-                    text = "Choose PDF",
-                    onClick = {
-                        pdfPickerLauncher.launch(arrayOf("application/pdf"))
-                    }
-                )
-                VerticalSpacer(10.dp)
-                PrimaryButton(
-                    text = "Proceed to Scan",
-                    onClick = {
-                        if (fileName?.endsWith(".pdf") == true && pdfUri != null){
-                            isLoading.value = true
-                            viewModel.clearOcrResults()
-                            viewModel.processPdfAndRunOcr(context)
-                        }else{
-                            scope.launch {
-                                snackbarHostState.showSnackbar(
-                                    message = "Please select a valid PDF file",
-                                    actionLabel = "OK"
-                                )
-                            }
-                        }
-                    }
-                )
-            }}
-    }}
+            )
+        }
+    }
+}

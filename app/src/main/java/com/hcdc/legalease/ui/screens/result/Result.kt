@@ -24,6 +24,7 @@ import com.hcdc.legalease.ui.components.cards.EnforceCard
 import com.hcdc.legalease.ui.components.cards.ResultCard.RiskCard
 import com.hcdc.legalease.ui.components.cards.SummaryCard
 import com.hcdc.legalease.ui.components.spacers.VerticalSpacer
+import com.hcdc.legalease.ui.screens.dashboard.LoadingDialog // <-- Import the required LoadingDialog
 import com.legalease.ui.theme.RiskColorHigh
 import com.legalease.ui.theme.RiskColorLow
 
@@ -43,12 +44,21 @@ fun ResultScreen(
     val sharedPref = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
     val uid = sharedPref.getString("uid", "") ?: ""
 
+    // NEW STATE: Control for the "Saving results..." dialog
+    var showSaveLoading by remember { mutableStateOf(false) }
+
     if (!launched) {
         LaunchedEffect(Unit) {
             launched = true
             resultViewmodel.analyzeContract(ocrText)
         }
     }
+
+    // Load the saving dialog outside the main Box
+    LoadingDialog(
+        show = showSaveLoading,
+        message = "Saving results..."
+    )
 
     Box(
         modifier = Modifier
@@ -120,15 +130,19 @@ fun ResultScreen(
                             confirmButton = {
                                 TextButton(onClick = {
                                     if (contractName.isNotBlank()) {
+                                        showDialog = false // Dismiss name dialog
+                                        showSaveLoading = true // <-- ACTIVATE "Saving results..." DIALOG
+
                                         resultViewmodel.saveContract(contractName, uid) { success ->
+                                            showSaveLoading = false // <-- DEACTIVATE DIALOG
+
                                             if (success) {
                                                 Toast.makeText(context, "Save Successful", Toast.LENGTH_SHORT).show()
-                                                showDialog = false
                                                 navController.navigate("dashboard") {
-                                                    popUpTo("result_screen") { inclusive = true } // optional: remove ResultScreen from back stack
+                                                    popUpTo("result_screen") { inclusive = true }
                                                 }
                                             } else {
-                                                // optional: show a Snackbar or Toast for failure
+                                                Toast.makeText(context, "Save Failed", Toast.LENGTH_LONG).show()
                                             }
                                         }
                                     }
@@ -196,6 +210,7 @@ fun ResultScreen(
                 }
             }
         } else {
+            // ORIGINAL CUSTOM LOADING REMAINS UNTOUCHED
             CustomLoading()
         }
     }

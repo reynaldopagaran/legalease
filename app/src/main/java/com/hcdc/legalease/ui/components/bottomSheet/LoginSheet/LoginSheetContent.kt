@@ -142,7 +142,7 @@ fun LoginSheetContent(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val scrollState = rememberScrollState()
+   // val scrollState = rememberScrollState()
 
     val TERMS_TEXT = context.getString(R.string.terms)
     val CONDITIONS_TEXT = context.getString(R.string.conditions)
@@ -155,8 +155,8 @@ fun LoginSheetContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp, vertical = 0.dp)
-                .verticalScroll(scrollState),
+                .padding(horizontal = 20.dp, vertical = 0.dp),
+                //.verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
@@ -186,10 +186,22 @@ fun LoginSheetContent(
             )
             VerticalSpacer(height = 10.dp)
 
+            // ✅ NEW LOCATION: Combined "Forgot password?" and "Create an Account" into one spaced-out Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                // 2. Create an Account
+                Text(
+                    text = "Create an Account",
+                    modifier = Modifier.clickable(enabled = !isLoading) {
+                        bottomSheetViewModel.show(BottomSheetContent.Register)
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                // 1. Forgot Password
                 Text(
                     text = "Forgot password?",
                     modifier = Modifier.clickable(enabled = !isLoading) {
@@ -199,12 +211,11 @@ fun LoginSheetContent(
                     color = MaterialTheme.colorScheme.primary
                 )
             }
+            // END OF NEW LOCATION
 
-            VerticalSpacer(height = 20.dp) // Adjusted spacer
+            VerticalSpacer(height = 20.dp) // Adjusted spacer after the inline links
 
-            // ⭐️ Terms and Conditions Checkbox Row
-            // Line 188 in the new structure:
-// ⭐️ Terms and Conditions Checkbox Row
+            // ⭐️ Terms and Conditions Checkbox Row (Now below the inline links)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -219,10 +230,7 @@ fun LoginSheetContent(
                         uncheckedColor = MaterialTheme.colorScheme.outline
                     )
                 )
-                Spacer(modifier = Modifier.width(8.dp))
 
-                // START OF THE CORRECTED TEXT HANDLING (using separate Text composables)
-                // The previous implementation using AnnotatedString was implicitly replaced by this block.
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     // Click on the overall text toggles the checkbox
@@ -242,8 +250,7 @@ fun LoginSheetContent(
                             showTermsDialog = true
                         },
                         style = MaterialTheme.typography.bodySmall.copy(
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
+                            color = MaterialTheme.colorScheme.primary
                         )
                     )
                     Text(
@@ -258,12 +265,10 @@ fun LoginSheetContent(
                             showConditionsDialog = true
                         },
                         style = MaterialTheme.typography.bodySmall.copy(
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
+                            color = MaterialTheme.colorScheme.primary
                         )
                     )
                 }
-                // END OF THE CORRECTED TEXT HANDLING
             }
 
             VerticalSpacer(height = 10.dp)
@@ -305,7 +310,7 @@ fun LoginSheetContent(
                 text = "────── or ──────",
                 style = MaterialTheme.typography.bodySmall
             )
-            VerticalSpacer(height = 30.dp)
+            VerticalSpacer(height = 25.dp)
 
             Image(
                 painter = painterResource(id = R.drawable.google),
@@ -344,15 +349,7 @@ fun LoginSheetContent(
             )
 
             VerticalSpacer(height = 30.dp)
-
-            Text(
-                text = "Create an Account",
-                modifier = Modifier.clickable(enabled = !isLoading) {
-                    bottomSheetViewModel.show(BottomSheetContent.Register)
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary
-            )
+            VerticalSpacer(height = 30.dp)
         }
 
         SnackbarHost(

@@ -3,10 +3,14 @@ package com.hcdc.legalease.ui.screens.history
 import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -42,19 +46,28 @@ fun HistoryScreen(
     val myID by viewModel.myID.collectAsState()
     val contractTypes by viewModel.contractTypes.collectAsState()
 
-    // Delete dialog state
+    // Context Menu / Tooltip State (For Rename/Delete options)
+    var expandedMenuIndex by remember { mutableStateOf<Int?>(null) }
+    var selectedIdForAction by remember { mutableStateOf<String?>(null) }
+    var selectedNameForAction by remember { mutableStateOf<String?>(null) } // Needed for Rename pre-fill
+
+    // Dialog States
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var selectedIdForDelete by remember { mutableStateOf<String?>(null) }
+    var showRenameDialog by remember { mutableStateOf(false) }
+    var newContractName by remember { mutableStateOf("") }
+
 
     // Snackbar
     val snackbarHostState = remember { SnackbarHostState() }
-    var showSnackbar by remember { mutableStateOf(false) }
-    LaunchedEffect(showSnackbar) {
-        if (showSnackbar) {
-            snackbarHostState.showSnackbar("Contract deleted successfully")
-            showSnackbar = false
+    var snackbarMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(snackbarMessage) {
+        snackbarMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            snackbarMessage = null
         }
     }
+
 
     val filterMap = mapOf(
         "DS" to "Deed of Sale",
@@ -65,13 +78,16 @@ fun HistoryScreen(
     )
 
     val filteredItems = contractNames.mapIndexedNotNull { index, name ->
-        val type = contractTypes.getOrNull(index) ?: ""
+        val typeCode = contractTypes.getOrNull(index) ?: ""
+
         val selectedFullName = filterMap[selectedFilter] ?: selectedFilter
 
         if (name.contains(searchQuery, ignoreCase = true) &&
-            (selectedFullName == "All" || type == selectedFullName)
+            (selectedFullName == "All" || typeCode == selectedFullName)
         ) {
-            index to name
+            // Find the short code for the HistoryCard
+            val typeShort = filterMap.entries.find { it.value == typeCode }?.key ?: ""
+            index to Pair(name, typeShort) // Store original index, name, and short type
         } else null
     }
 
@@ -128,10 +144,10 @@ fun HistoryScreen(
 
                 Spacer(modifier = Modifier.width(10.dp))
 
-                var expanded by remember { mutableStateOf(false) }
+                var expandedFilter by remember { mutableStateOf(false) }
                 Box {
                     Button(
-                        onClick = { expanded = true },
+                        onClick = { expandedFilter = true },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         ),
@@ -139,11 +155,12 @@ fun HistoryScreen(
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
                         modifier = Modifier.height(56.dp)
                     ) {
+                        // FIX #2: Reverting to selectedFilter to display short code (e.g., "RA")
                         Text(text = selectedFilter)
                     }
                     DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
+                        expanded = expandedFilter,
+                        onDismissRequest = { expandedFilter = false }
                     ) {
                         listOf("All", "DS", "RA", "LA", "LO").forEach { option ->
                             DropdownMenuItem(
@@ -160,7 +177,7 @@ fun HistoryScreen(
                                 },
                                 onClick = {
                                     selectedFilter = option
-                                    expanded = false
+                                    expandedFilter = false
                                 }
                             )
                         }
@@ -174,24 +191,69 @@ fun HistoryScreen(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(15.dp),
             ) {
-                itemsIndexed(filteredItems) { _, (index, item) ->
-                    val id = myID.getOrNull(index) ?: return@itemsIndexed
-                    HistoryCard(
-                        title = item,
-                        onClick = { navController.navigate("result_history/$id") },
-                        onLongPress = {
-                            selectedIdForDelete = id
-                            showDeleteDialog = true
+                itemsIndexed(filteredItems) { listIndex, (originalIndex, data) ->
+                    val (item, typeShort) = data // Deconstruct Pair to get name and short type
+                    val id = myID.getOrNull(originalIndex) ?: return@itemsIndexed
+
+                    Box(
+                        modifier = Modifier.fillMaxWidth().wrapContentSize(Alignment.TopEnd)
+                    ) {
+                        HistoryCard(
+                            title = item,
+                            contractTypeShort = typeShort,
+                            onClick = { navController.navigate("result_history/$id") },
+                            onLongPress = {
+                                // Show context menu/tooltip instead of immediate delete
+                                selectedIdForAction = id
+                                selectedNameForAction = item
+                                expandedMenuIndex = listIndex
+                            }
+                        )
+                        // Context Menu / Tooltip
+                        DropdownMenu(
+                            expanded = expandedMenuIndex == listIndex,
+                            onDismissRequest = { expandedMenuIndex = null },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant) // Corrected background to surfaceVariant for better contrast/standard
+                        ) {
+                            // RENAME Option
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        "Rename",
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                },
+                                onClick = {
+                                    expandedMenuIndex = null
+                                    showRenameDialog = true
+                                }
+                            )
+                            // DELETE Option
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        "Delete",
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                },
+                                onClick = {
+                                    expandedMenuIndex = null
+                                    showDeleteDialog = true
+                                }
+                            )
                         }
-                    )
+                    }
                 }
             }
         }
 
+        // ---
+
         // Delete confirmation dialog
-        if (showDeleteDialog && selectedIdForDelete != null) {
+        if (showDeleteDialog && selectedIdForAction != null) {
             AlertDialog(
-                onDismissRequest = { showDeleteDialog = false },
+                onDismissRequest = { showDeleteDialog = false; selectedIdForAction = null; selectedNameForAction = null },
+                containerColor = MaterialTheme.colorScheme.background,
                 title = {
                     Text(
                         "Delete Contract?",
@@ -200,15 +262,17 @@ fun HistoryScreen(
                 },
                 text = {
                     Text(
-                        "Are you sure you want to delete this contract?",
+                        "Are you sure you want to delete the contract: \"${selectedNameForAction}\"?",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 },
                 confirmButton = {
                     TextButton(onClick = {
-                        viewModel.deleteContract(selectedIdForDelete!!)
+                        viewModel.deleteContract(selectedIdForAction!!)
                         showDeleteDialog = false
-                        showSnackbar = true // trigger snackbar
+                        selectedIdForAction = null
+                        selectedNameForAction = null
+                        snackbarMessage = "Contract deleted successfully" // trigger snackbar
                     }) {
                         Text(
                             "Delete",
@@ -217,7 +281,85 @@ fun HistoryScreen(
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showDeleteDialog = false }) {
+                    TextButton(onClick = { showDeleteDialog = false; selectedIdForAction = null; selectedNameForAction = null }) {
+                        Text(
+                            "Cancel",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
+            )
+        }
+
+        // ---
+
+        // Rename dialog
+        if (showRenameDialog && selectedIdForAction != null) {
+            // FIX #1: LaunchedEffect synchronizes the TextField state with the latest selected name
+            LaunchedEffect(selectedNameForAction) {
+                newContractName = selectedNameForAction ?: ""
+            }
+
+            AlertDialog(
+                onDismissRequest = {
+                    showRenameDialog = false
+                    selectedIdForAction = null
+                    selectedNameForAction = null
+                    newContractName = "" // Reset state on external dismissal
+                },
+                containerColor = MaterialTheme.colorScheme.background,
+                title = {
+                    Text(
+                        "Rename Contract",
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                },
+                text = {
+                    OutlinedTextField(
+                        value = newContractName,
+                        onValueChange = { newContractName = it },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val idToRename = selectedIdForAction!!
+                            val name = newContractName
+
+                            viewModel.renameContract(idToRename, name) { success ->
+                                showRenameDialog = false
+
+                                // CRITICAL FIX #1: Explicitly nullify ID and Name to force the next
+                                // long-press to pull the *new* name from the recomposed HistoryCard.
+                                selectedIdForAction = null
+                                selectedNameForAction = null
+                                newContractName = ""
+
+                                snackbarMessage = if (success) {
+                                    "Contract renamed successfully to \"$name\""
+                                } else {
+                                    "Failed to rename contract. Please try again."
+                                }
+                            }
+                        },
+                        // Ensure the new name is different from the old one
+                        enabled = newContractName.isNotBlank() && newContractName != selectedNameForAction
+                    ) {
+                        Text(
+                            "Rename",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showRenameDialog = false
+                        selectedIdForAction = null
+                        selectedNameForAction = null
+                        newContractName = "" // Reset state when hitting cancel
+                    }) {
                         Text(
                             "Cancel",
                             style = MaterialTheme.typography.titleMedium

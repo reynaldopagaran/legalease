@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue // <-- Required for `var showLoadingDialog by remember`
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,10 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.hcdc.legalease.ui.components.CustomLoading
 import com.hcdc.legalease.ui.components.buttons.PrimaryButton
 import com.hcdc.legalease.ui.components.buttons.SecondaryButton
 import com.hcdc.legalease.ui.components.spacers.VerticalSpacer
+import com.hcdc.legalease.ui.screens.dashboard.LoadingDialog // <-- New import
 import kotlinx.coroutines.launch
 
 
@@ -57,7 +58,8 @@ fun ImageScreen(
     var hasNavigated = remember { false }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val isLoading = remember { mutableStateOf(false) }
+    // Replaced isLoading with showLoadingDialog
+    var showLoadingDialog by remember { mutableStateOf(false) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
@@ -67,6 +69,7 @@ fun ImageScreen(
 
     LaunchedEffect(scanCompleted) {
         if (scanCompleted && !hasNavigated) {
+            showLoadingDialog = false // <-- Dismiss dialog before navigating
             hasNavigated = true
             val scannedText = texts.value.joinToString(" ").replace("\\s+".toRegex(), " ").trim()
             val encodedText = Uri.encode(scannedText)
@@ -77,89 +80,91 @@ fun ImageScreen(
         }
     }
 
+    // Integrated LoadingDialog
+    LoadingDialog(
+        show = showLoadingDialog,
+        message = "Please wait..."
+    )
 
-    if (isLoading.value) {
-        CustomLoading()
-    } else{
-        Scaffold(
-            snackbarHost = { SnackbarHost(snackbarHostState) }
-        ) { paddingValues ->
-            Column(
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(MaterialTheme.colorScheme.background)
+                .padding(horizontal = 20.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Text(
+                text = "(${images.size}) Images selected"
+            )
+
+            VerticalSpacer(20.dp)
+            // Image Viewer Placeholder
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(horizontal = 20.dp, vertical = 20.dp),
-                verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
             ) {
-
-                Text(
-                    text = "(${images.size}) Images selected"
-                )
-
-                VerticalSpacer(20.dp)
-                // Image Viewer Placeholder
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outline,
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (images.isNotEmpty()) {
-                        LazyRow(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 16.dp)
-                                .clip(RoundedCornerShape(12.dp)),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            items(images) { uri ->
-                                AsyncImage(
-                                    model = uri,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                                    contentScale = ContentScale.Fit
-                                )
-                            }
+                if (images.isNotEmpty()) {
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(images) { uri ->
+                            AsyncImage(
+                                model = uri,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                contentScale = ContentScale.Fit
+                            )
                         }
-                    } else {
-                        Text("No images selected.")
+                    }
+                } else {
+                    Text("No images selected.")
+                }
+            }
+            VerticalSpacer(20.dp)
+            SecondaryButton(
+                text = "Choose Image/s",
+                onClick = {
+                    imagePickerLauncher.launch("image/*")
+                }
+            )
+            VerticalSpacer(10.dp)
+            PrimaryButton(
+                text = "Proceed to Scan",
+                onClick = {
+                    if (images.isNotEmpty()){
+                        // Replaced isLoading.value = true
+                        showLoadingDialog = true
+                        viewModel.clearOcrResults()
+                        viewModel.runTextRecognition(context, images)
+                    }else{
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = "Please select images",
+                                actionLabel = "OK"
+                            )
+                        }
                     }
                 }
-                VerticalSpacer(20.dp)
-                SecondaryButton(
-                    text = "Choose Image/s",
-                    onClick = {
-                        imagePickerLauncher.launch("image/*")
-                    }
-                )
-                VerticalSpacer(10.dp)
-                PrimaryButton(
-                    text = "Proceed to Scan",
-                    onClick = {
-                        if (images.isNotEmpty()){
-                            isLoading.value = true
-                            viewModel.clearOcrResults()
-                            viewModel.runTextRecognition(context, images)
-                        }else{
-                            scope.launch {
-                                snackbarHostState.showSnackbar(
-                                    message = "Please select images",
-                                    actionLabel = "OK"
-                                )
-                            }
-                        }
-                    }
-                )
-            }
+            )
         }
     }
 }
